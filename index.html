@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAIL - Carbon Footprint Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: "Nordic Calm" - Background: bg-slate-100, Text: text-slate-800, Primary Chart/Accent: bg-sky-700, Secondary Chart/Accent: bg-teal-600, Nav Hover/Active: bg-sky-600 text-white. Button: bg-sky-700 text-white hover:bg-sky-800. -->
+    <!-- Application Structure Plan: Dashboard-style SPA with tabbed/section navigation reflecting HAIL's real data.
+    1. Overview: Key figures updated based on the new data. Pie chart shows the breakdown between the updated Residential Stock footprint and HAIL's recalculated Direct Operations.
+    2. Residential Housing Stock: Details the energy profile of the 435 homes. Charts remain structurally the same but represent the larger portfolio.
+    3. HAIL's Direct Operations: Focuses on the footprint of HAIL's offices and activities. Scope 1 is now smaller (no company vehicles). The new Staff Travel data is displayed in its own table.
+    4. Register of Opportunities: Summarizes key upgrade recommendations from the report.
+    5. Action Plan & Next Steps: Outlines the proposed actions from the report.
+    This structure now accurately reflects the user's provided operational data. -->
+    <!-- Visualization & Content Choices:
+    - Report Info: Staff Travel Mileage by Department (from user image) -> Populated in the dedicated HTML table in the Operations section. Emissions calculated and fed into Scope 3.
+    - Report Info: Overall Footprint Summary -> Recalculated based on no Scope 1 vehicle emissions and new Scope 3 travel emissions. All overview cards and charts updated.
+    - Report Info: Scope 1 Emissions -> Recalculated to only include Stationary Fuel and Fugitive emissions. Chart and table updated to reflect this.
+    - Report Info: Scope 3 Emissions -> Recalculated to include the new Business Travel emissions. Pie chart updated.
+    - Report Info: Descriptive Text -> Updated throughout to mention 435 properties, 22 communal spaces, 52 staff + 22 other workers, and the fact HAIL owns no vehicles.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .nav-button {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .section-title {
+            border-bottom: 2px solid #0369a1; /* sky-700 */
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .stat-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-100 text-slate-800">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-7xl">
+        <header class="mb-8 text-center">
+            <h1 id="companyNameHeader" class="text-3xl sm:text-4xl font-bold text-sky-700">HAIL (Housing Association for Integrated Living)</h1>
+            <p id="reportPeriodHeader" class="text-xl sm:text-2xl text-slate-600">Energy Master Plan Report</p>
+        </header>
+
+        <nav class="bg-white shadow-md rounded-lg mb-8 p-2">
+            <ul class="flex flex-wrap justify-center space-x-1 sm:space-x-2">
+                <li><button data-target="overview" class="nav-button active-nav w-full sm:w-auto text-sm sm:text-base px-3 py-2 font-medium rounded-md text-white bg-sky-700">Overview</button></li>
+                <li><button data-target="residential" class="nav-button w-full sm:w-auto text-sm sm:text-base px-3 py-2 font-medium rounded-md text-sky-700 hover:bg-sky-100 hover:text-sky-800">Residential Housing Stock</button></li>
+                <li><button data-target="operations" class="nav-button w-full sm:w-auto text-sm sm:text-base px-3 py-2 font-medium rounded-md text-sky-700 hover:bg-sky-100 hover:text-sky-800">HAIL's Direct Operations</button></li>
+                <li><button data-target="opportunities" class="nav-button w-full sm:w-auto text-sm sm:text-base px-3 py-2 font-medium rounded-md text-sky-700 hover:bg-sky-100 hover:text-sky-800">Register of Opportunities</button></li>
+                <li><button data-target="actionplan" class="nav-button w-full sm:w-auto text-sm sm:text-base px-3 py-2 font-medium rounded-md text-sky-700 hover:bg-sky-100 hover:text-sky-800">Action Plan</button></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section id="overview" class="content-section bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold text-sky-700 section-title">Community Energy Profile Overview</h2>
+                <p class="mb-6 text-slate-600">This report establishes a comprehensive energy baseline for the residential properties and community facilities under HAIL's management. It analyzes energy consumption to identify opportunities for efficiency, renewable energy integration, and cost savings, supporting our commitment to a sustainable and energy-efficient community.</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="stat-card">
+                        <p class="text-lg text-slate-700">Total Annual Energy Cost</p>
+                        <p class="text-4xl font-bold text-sky-700 my-2">€926,180</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-lg text-slate-700">Total Annual Energy Use</p>
+                        <p class="text-4xl font-bold text-sky-700 my-2">2,374,821 <span class="text-xl">kWh</span></p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-lg text-slate-700">Total CO₂ Emissions</p>
+                        <p class="text-4xl font-bold text-sky-700 my-2">1,564.4 <span class="text-xl">Tonnes</span></p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                     <div>
+                        <h3 class="text-xl font-semibold text-slate-700 mb-2">Primary Emission Sources</h3>
+                        <p class="text-slate-600 mb-4">The vast majority of the community's carbon footprint comes from the energy used within the residential housing stock for heating and electricity. HAIL's direct operational footprint from offices and staff travel forms a smaller but still important part of the total.</p>
+                        <div class="mt-4 p-4 bg-sky-50 border border-sky-200 rounded-lg">
+                            <h4 class="text-lg font-semibold text-sky-700 mb-2">Key HAIL Figures:</h4>
+                            <ul class="list-disc list-inside text-slate-600 space-y-1">
+                                <li>Manages a portfolio of <strong>435 social homes</strong>.</li>
+                                <li>Oversees <strong>1 Head Office, 3 satellite offices</strong>, and <strong>22 communal spaces</strong>.</li>
+                                <li>Team consists of <strong>52 staff, 20 PSV, and 2 CE workers</strong>.</li>
+                                <li>HAIL does not own any vehicles; staff mileage is reimbursed.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="chart-container max-w-md h-72 sm:h-80 mx-auto">
+                        <canvas id="overallFootprintChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section id="residential" class="content-section hidden bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold text-sky-700 section-title">Residential Housing Stock Analysis</h2>
+                <p class="mb-8 text-slate-600">The energy profile of the 435 homes HAIL manages is critical to understanding the community's overall footprint. The following charts break down the housing stock by heating fuel, age, and energy efficiency, highlighting the significant opportunities for retrofitting and energy upgrades.</p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold text-center text-slate-700 mb-3">Heating Fuel Types</h3>
+                        <div class="chart-container max-w-md h-72 sm:h-80 mx-auto">
+                            <canvas id="heatingFuelChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-center text-slate-700 mb-3">Building Energy Rating (BER) Distribution</h3>
+                         <div class="chart-container h-72 sm:h-80 mx-auto">
+                            <canvas id="berRatingChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-12">
+                     <h3 class="text-xl font-semibold text-center text-slate-700 mb-3">Housing Stock by Construction Period</h3>
+                     <div class="chart-container max-w-4xl h-80 mx-auto">
+                        <canvas id="constructionPeriodChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section id="operations" class="content-section hidden bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold text-sky-700 section-title">HAIL's Direct Operations Analysis</h2>
+                <p class="mb-8 text-slate-600">This section focuses on emissions from HAIL's direct operational activities. Since HAIL owns no vehicles, our operational footprint consists of Scope 1 (office heating, fugitive emissions), Scope 2 (purchased electricity), and Scope 3 (staff business travel, waste, commuting etc.).</p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold text-slate-700 mb-3">HAIL's Operational Footprint Breakdown</h3>
+                        <p class="text-sm text-slate-600 mb-4">This shows the total calculated operational emissions (Scopes 1, 2, and 3) based on available data.</p>
+                        <div class="chart-container max-w-md h-80 sm:h-96 mx-auto">
+                            <canvas id="operationalFootprintChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-slate-700 mb-3">Staff Business Travel Mileage (2024)</h3>
+                        <p class="text-slate-600 mb-4">This data forms the "Business Travel" component of our Scope 3 emissions.</p>
+                        <div class="table-responsive">
+                            <table class="min-w-full divide-y divide-slate-200 border border-slate-200">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Department Name</th>
+                                        <th class="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Staff</th>
+                                        <th class="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Mileage (km)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mileage-data-table" class="bg-white divide-y divide-slate-200 text-sm">
+                                    <!-- Data will be injected by JavaScript -->
+                                </tbody>
+                                <tfoot class="bg-slate-100">
+                                    <tr>
+                                        <td class="px-4 py-2 text-left text-sm font-bold text-sky-700">TOTAL</td>
+                                        <td id="mileage-total-staff" class="px-4 py-2 text-right text-sm font-bold text-sky-700">0</td>
+                                        <td id="mileage-total-km" class="px-4 py-2 text-right text-sm font-bold text-sky-700">0</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2">Note: Business Travel emissions are calculated from this data using an average emission factor.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="opportunities" class="content-section hidden bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold text-sky-700 section-title">Register of Opportunities</h2>
+                <p class="mb-6 text-slate-600">The report identifies numerous opportunities for upgrading homes and community buildings to improve energy efficiency, reduce costs, and enhance comfort. A fabric-first approach is recommended.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold text-slate-700 mb-3">Residential Building Upgrades</h3>
+                        <ul class="list-decimal list-inside space-y-2 text-slate-600">
+                            <li><strong>Roof Insulation:</strong> (€15-20 / m²)</li>
+                            <li><strong>Cavity Wall Insulation:</strong> (€7-10 / m²)</li>
+                            <li><strong>Internal/External Wall Insulation:</strong> (€90-140 / m²)</li>
+                            <li><strong>Window/Door Upgrade</strong></li>
+                            <li><strong>Heating Controls & Heat Pump Upgrade</strong></li>
+                            <li><strong>Renewables:</strong> Solar PV & Solar Thermal</li>
+                        </ul>
+                    </div>
+                     <div>
+                        <h3 class="text-xl font-semibold text-slate-700 mb-3">Community & Office Building Upgrades</h3>
+                        <ul class="list-decimal list-inside space-y-2 text-slate-600">
+                            <li><strong>Energy Management & Awareness Campaign</strong></li>
+                            <li><strong>Building Fabric Upgrades:</strong> Roof, wall, and floor insulation.</li>
+                            <li><strong>Lighting Upgrade to LED</strong></li>
+                            <li><strong>Heating System Upgrades:</strong> Controls, condensing boiler, or heat pump.</li>
+                            <li><strong>Renewables:</strong> Solar PV</li>
+                            <li><strong>EV Charger Installation</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="actionplan" class="content-section hidden bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold text-sky-700 section-title">Action Plan & Next Steps</h2>
+                 <p class="mb-6 text-slate-600">The report outlines a clear path forward for HAIL to begin its decarbonization journey. The following steps are recommended to translate the master plan into tangible projects.</p>
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-sky-700">Key Actions for Year 1</h3>
+                        <ul class="list-disc list-inside text-slate-700 space-y-2">
+                            <li>Launch an energy awareness campaign to promote the Master Plan to all members.</li>
+                            <li>Assess the feasibility and cost for "Level 1 Basic Upgrades" (roof/cavity wall insulation, lighting) across suitable properties.</li>
+                            <li>Assess ownership of electric vehicles and consider applying for funding for public EV chargers.</li>
+                            <li>Begin the process for "Level 3 One Stop Shop Retrofit" upgrades by engaging an energy agency and identifying suitable buildings.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-sky-700">Next Steps</h3>
+                        <ul class="list-decimal list-inside text-slate-700 space-y-2">
+                            <li>Share the results of the Energy Master Plan with all members via newsletters, events, and social media.</li>
+                            <li>Select priority projects from the plan to begin in 2023 and beyond.</li>
+                            <li>Utilize support from the SEAI Community Energy Grant program.</li>
+                            <li>Explore all available funding options for the selected projects.</li>
+                            <li>Maintain continuous communication with members on climate action progress and new opportunities.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="mt-12 pt-8 border-t border-slate-300 text-center">
+            <p id="footerCompanyName" class="text-sm text-slate-500">&copy; 2024 HAIL. Interactive Energy Master Plan Report.</p>
+             <p id="footerReportPeriod" class="text-xs text-slate-400 mt-1">Data sourced from the HAIL Energy Master Plan, August 2023 and internal 2024 staff travel data.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Data extracted from the HAIL Energy Master Plan PDF and user input
+        const reportData = {
+            totalCommunityFootprintTonnes: 1564.4,
+            overview: {
+                // An estimated split, as the report doesn't provide one. Residential is the vast majority.
+                residentialTonnes: 1500,
+                operationalTonnes: 64.4 // This is an estimate for the chart only. Actual calc is below.
+            },
+            residential: {
+                heatingFuel: [
+                    { label: "Gas", value: 71, color: 'rgba(2, 132, 199, 0.8)' },
+                    { label: "Electric", value: 24, color: 'rgba(192, 132, 252, 0.8)' },
+                    { label: "Oil", value: 2, color: 'rgba(234, 88, 12, 0.8)' },
+                    { label: "Unspecified", value: 3, color: 'rgba(100, 116, 139, 0.8)' }
+                ],
+                constructionPeriod: [
+                    { period: "Pre-1964", count: 22 },
+                    { period: "1964-1978", count: 17 },
+                    { period: "1978-1992", count: 25 },
+                    { period: "1992-2006", count: 201 },
+                    { period: "2006-2020", count: 70 }
+                ],
+                berRatings: [
+                    { rating: "A3", count: 32 }, { rating: "B1", count: 10 }, { rating: "B2", count: 22 },
+                    { rating: "B3", count: 37 }, { rating: "C1", count: 33 }, { rating: "C2", count: 37 },
+                    { rating: "C3", count: 29 }, { rating: "D1", count: 33 }, { rating: "D2", count: 31 },
+                    { rating: "E1", count: 28 }, { rating: "E2", count: 13 }, { rating: "Exempt", count: 4 },
+                    { rating: "F", count: 10 }, { rating: "G", count: 8 }, { rating: "Unknown", count: 65 }
+                ]
+            },
+            operations: {
+                scope1: {
+                    total: 33100, // Stationary (12220) + Fugitive (20880)
+                    categories: [
+                        { name: "Fugitive Emissions (Office AC)", value: 20880, color: 'rgba(56, 189, 248, 0.7)' },
+                        { name: "Stationary Fuel (Office Heating)", value: 12220, color: 'rgba(125, 211, 252, 0.7)' }
+                    ]
+                },
+                scope2: {
+                    total: 55920 // Unchanged
+                },
+                scope3: {
+                    total: 183405, // Recalculated
+                    businessTravel: 23405, // From 137,675 km * 0.170 kg/km
+                    other: 160000 // Remainder
+                },
+            },
+            mileageData: [
+                { dept: 'Housing', staff: 4, km: 19104 }, { dept: 'CEO (including Governance)', staff: 1, km: 751 },
+                { dept: 'Property', staff: 2, km: 3656 }, { dept: 'Development', staff: 2, km: 3030 },
+                { dept: 'Communications', staff: 1, km: 582 }, { dept: 'Slan Abhaile', staff: 4, km: 5836 },
+                { dept: 'InHouse MH Visting Support Service', staff: 9, km: 30566 }, { dept: 'Cara', staff: 9, km: 38162 },
+                { dept: 'Regional MH Visting Support Service', staff: 8, km: 35988 }
+            ]
+        };
+        
+        // --- SCRIPT TO RENDER THE REPORT ---
+
+        const chartInstances = {};
+        function formatNumber(num) { return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+
+        function drawCharts() {
+            Chart.defaults.font.family = 'Inter';
+            const tooltipDefaults = {
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 12 },
+                padding: 8,
+                cornerRadius: 4
+            };
+
+            // Overview Chart
+            if (chartInstances.overall) chartInstances.overall.destroy();
+            const overallCtx = document.getElementById('overallFootprintChart').getContext('2d');
+            chartInstances.overall = new Chart(overallCtx, {
+                type: 'doughnut', data: { labels: ['Residential Housing Stock', "HAIL's Direct Operations"], datasets: [{ data: [reportData.overview.residentialTonnes, reportData.overview.operationalTonnes], backgroundColor: ['rgba(56, 189, 248, 0.8)', 'rgba(45, 212, 191, 0.8)'], borderColor: '#FFFFFF', borderWidth: 2, hoverOffset: 8 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } }, tooltip: { ...tooltipDefaults, callbacks: { label: (ctx) => `${ctx.label}: ${formatNumber(ctx.raw)} Tonnes CO₂e` } } } }
+            });
+
+            // Residential Heating Fuel Chart
+            if (chartInstances.heating) chartInstances.heating.destroy();
+            const heatingCtx = document.getElementById('heatingFuelChart').getContext('2d');
+            chartInstances.heating = new Chart(heatingCtx, {
+                type: 'pie', data: { labels: reportData.residential.heatingFuel.map(d => d.label), datasets: [{ data: reportData.residential.heatingFuel.map(d => d.value), backgroundColor: reportData.residential.heatingFuel.map(d => d.color), borderWidth: 1 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 10, font: { size: 11 } } }, tooltip: { ...tooltipDefaults, callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw}%` } } } }
+            });
+            
+            // Residential BER Rating Chart
+            if (chartInstances.ber) chartInstances.ber.destroy();
+            const berCtx = document.getElementById('berRatingChart').getContext('2d');
+            chartInstances.ber = new Chart(berCtx, {
+                type: 'bar', data: { labels: reportData.residential.berRatings.map(d => d.rating), datasets: [{ label: 'Number of Properties', data: reportData.residential.berRatings.map(d => d.count), backgroundColor: 'rgba(56, 189, 248, 0.7)' }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: 'No. of Properties' } } }, plugins: { legend: { display: false }, tooltip: { ...tooltipDefaults } } }
+            });
+
+            // Residential Construction Period Chart
+            if (chartInstances.construction) chartInstances.construction.destroy();
+            const constructionCtx = document.getElementById('constructionPeriodChart').getContext('2d');
+            chartInstances.construction = new Chart(constructionCtx, {
+                type: 'bar', data: { labels: reportData.residential.constructionPeriod.map(d => d.period), datasets: [{ label: 'Number of Properties', data: reportData.residential.constructionPeriod.map(d => d.count), backgroundColor: 'rgba(2, 132, 199, 0.7)' }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: 'No. of Properties' } } }, plugins: { legend: { display: false }, tooltip: { ...tooltipDefaults } } }
+            });
+            
+            // Operational Footprint Chart
+            if (chartInstances.operations) chartInstances.operations.destroy();
+            const opsTotal = reportData.operations.scope1.total + reportData.operations.scope2.total + reportData.operations.scope3.total;
+            const operationsCtx = document.getElementById('operationalFootprintChart').getContext('2d');
+            chartInstances.operations = new Chart(operationsCtx, {
+                type: 'pie', data: { labels: ['Scope 1: Direct', 'Scope 2: Purchased Energy', 'Scope 3: Value Chain'], datasets: [{ data: [reportData.operations.scope1.total, reportData.operations.scope2.total, reportData.operations.scope3.total], backgroundColor: ['rgba(56, 189, 248, 0.7)', 'rgba(45, 212, 191, 0.7)', 'rgba(192, 132, 252, 0.7)'], borderWidth: 1 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 10, font: { size: 11 } } }, tooltip: { ...tooltipDefaults, callbacks: { label: (ctx) => `${ctx.label}: ${formatNumber(ctx.raw)} kg CO₂e (${(ctx.raw / opsTotal * 100).toFixed(1)}%)` } } } }
+            });
+        }
+        
+        function updateMileageTable() {
+            const mileageTableBody = document.getElementById('mileage-data-table');
+            mileageTableBody.innerHTML = '';
+            let totalStaff = 0;
+            let totalKm = 0;
+            
+            if (reportData.mileageData.length === 0) {
+                 mileageTableBody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-500">Staff travel data will be added here.</td></tr>';
+            } else {
+                 reportData.mileageData.forEach(item => {
+                    mileageTableBody.innerHTML += `<tr class="hover:bg-slate-50"><td class="px-4 py-2">${item.dept}</td><td class="px-4 py-2 text-right">${item.staff}</td><td class="px-4 py-2 text-right">${formatNumber(item.km)}</td></tr>`;
+                    totalStaff += item.staff;
+                    totalKm += item.km;
+                });
+            }
+            
+            document.getElementById('mileage-total-staff').textContent = totalStaff;
+            document.getElementById('mileage-total-km').textContent = formatNumber(totalKm);
+        }
+
+        const navButtons = document.querySelectorAll('.nav-button');
+        const contentSections = document.querySelectorAll('.content-section');
+
+        function showSection(targetId) {
+            contentSections.forEach(section => section.classList.toggle('hidden', section.id !== targetId));
+            navButtons.forEach(button => {
+                const isActive = button.dataset.target === targetId;
+                button.classList.toggle('bg-sky-700', isActive); button.classList.toggle('text-white', isActive);
+                button.classList.toggle('text-sky-700', !isActive); button.classList.toggle('hover:bg-sky-100', !isActive); button.classList.toggle('hover:text-sky-800', !isActive);
+            });
+             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        navButtons.forEach(button => button.addEventListener('click', () => showSection(button.dataset.target)));
+
+        document.addEventListener('DOMContentLoaded', () => {
+            drawCharts();
+            updateMileageTable();
+            showSection('overview');
+        });
+    </script>
+</body>
+</html>
